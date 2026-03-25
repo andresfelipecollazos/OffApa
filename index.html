@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OFFApa AI</title>
+<title>OFFApa AI PRO</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
@@ -60,16 +60,16 @@ button:hover{
 
 <body>
 
-<h1>OFFApa AI</h1>
+<h1>OFFApa AI PRO</h1>
 
 <div class="card">
-<input id="url" placeholder="DOI, link o título">
-<button onclick="generar()">Generar</button>
+<input id="url" placeholder="DOI, título o link">
+<button onclick="generar()">Generar cita directa</button>
 </div>
 
 <div class="card">
-<textarea id="texto" placeholder="Pega texto"></textarea>
-<button onclick="generarDesdeTexto()">Analizar texto</button>
+<textarea id="texto" placeholder="Pega un párrafo para encontrar su fuente"></textarea>
+<button onclick="generarDesdeTexto()">Detectar documento automáticamente</button>
 </div>
 
 <div class="card">
@@ -167,33 +167,41 @@ function agregar(c){
  limpiarCampos();
 }
 
-/* ---------- BUSCAR MULTI FUENTE ---------- */
+/* ---------- BUSQUEDA MULTI MOTOR ---------- */
 
-async function buscarFuentes(query){
+async function buscarDocumentos(query){
 
- let resultados = [];
+ let candidatos = [];
 
- // CROSSREF
+ /* 🔥 OPENALEX */
  try{
-   let r = await fetch(`https://api.crossref.org/works?query=${encodeURIComponent(query)}&rows=3`);
+   let r = await fetch(`https://api.openalex.org/works?search=${encodeURIComponent(query)}&per-page=5`);
    let d = await r.json();
 
-   d.message.items.forEach(i=>{
-     resultados.push({
-       titulo:i.title?.[0]||"",
-       autores:(i.author||[]).map(a=>a.family).join(" "),
-       data:i
+   d.results.forEach(w=>{
+     candidatos.push({
+       titulo:w.title,
+       autores:(w.authorships||[]).map(a=>a.author.display_name).join(" "),
+       data:{
+         title:[w.title],
+         author:(w.authorships||[]).map(a=>{
+           let n=a.author.display_name.split(" ");
+           return {given:n[0],family:n.slice(1).join(" ")};
+         }),
+         issued:{"date-parts":[[w.publication_year]]},
+         "container-title":[w.host_venue?.display_name||""]
+       }
      });
    });
  }catch(e){}
 
- // SEMANTIC SCHOLAR
+ /* 🔥 SEMANTIC */
  try{
-   let r = await fetch(`https://api.semanticscholar.org/graph/v1/paper/search?query=${encodeURIComponent(query)}&limit=3&fields=title,authors,year,venue`);
+   let r = await fetch(`https://api.semanticscholar.org/graph/v1/paper/search?query=${encodeURIComponent(query)}&limit=5&fields=title,authors,year,venue`);
    let d = await r.json();
 
    d.data.forEach(p=>{
-     resultados.push({
+     candidatos.push({
        titulo:p.title,
        autores:p.authors.map(a=>a.name).join(" "),
        data:{
@@ -209,67 +217,48 @@ async function buscarFuentes(query){
    });
  }catch(e){}
 
- // OPEN LIBRARY
- try{
-   let r = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}`);
-   let d = await r.json();
-
-   if(d.docs.length){
-     let b = d.docs[0];
-
-     resultados.push({
-       titulo:b.title,
-       autores:(b.author_name||["Autor"]).join(" "),
-       data:{
-         title:[b.title],
-         author:(b.author_name||["Autor"]).map(a=>{
-           let p=a.split(" ");
-           return {given:p[0],family:p.slice(1).join(" ")};
-         }),
-         issued:{"date-parts":[[b.first_publish_year]]},
-         "container-title":["Libro"]
-       }
-     });
-   }
- }catch(e){}
-
- return resultados;
+ return candidatos;
 }
 
-/* ---------- GENERAR DESDE TEXTO (INTELIGENTE) ---------- */
+/* ---------- DETECTAR DOCUMENTO DESDE TEXTO ---------- */
 
 async function generarDesdeTexto(){
 
- let texto = document.getElementById("texto").value;
+ let texto = document.getElementById("texto").value.trim();
  if(!texto) return alert("Pega un texto");
 
  let doi = detectarDOI(texto);
-
  if(doi){
    url.value = doi;
    generar();
    return;
  }
 
- let resultados = await buscarFuentes(texto);
+ // 🔥 FRASE CLAVE
+ let fragmento = texto.split(" ").slice(0,30).join(" ");
 
- if(!resultados.length){
-   alert("Sin resultados");
+ let candidatos = await buscarDocumentos(fragmento);
+
+ if(!candidatos.length){
+   alert("No se encontró el documento");
    return;
  }
 
- resultados.forEach(r=>{
-   r.score = similitud(texto, r.titulo + " " + r.autores);
+ // 🔥 COMPARACIÓN
+ candidatos.forEach(c=>{
+   c.score = similitud(texto, c.titulo + " " + c.autores);
  });
 
- resultados.sort((a,b)=>b.score - a.score);
+ candidatos.sort((a,b)=>b.score - a.score);
 
- let mejor = resultados[0];
+ let mejor = candidatos[0];
+
+ console.log("Documento encontrado:", mejor);
 
  agregar(formatearAPA(mejor.data));
 }
 
-/* ---------- GENERAR NORMAL ---------- */
+/* ---------- GENERAR DIRECTO ---------- */
 
 async function generar(){
 
