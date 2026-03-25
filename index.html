@@ -3,275 +3,334 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OFFApa PRO</title>
+<title>OFFApa AI</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-
-:root{
-  --bg:#0b0d12;
-  --card:#171b24;
-  --border:#2a2f3a;
-  --text:#e8ecf1;
-  --sub:#8b93a7;
-  --accent:#5ad1ff;
-  --accent-soft:#5ad1ff22;
-  --danger:#ff4d4d;
-}
-
 body{
-  font-family:'Inter',sans-serif;
-  background:radial-gradient(circle at top,#141922,#090b10);
-  color:var(--text);
-  max-width:900px;
-  margin:auto;
-  padding:30px 20px;
-  scroll-behavior:smooth;
+ font-family:Inter;
+ background:#0b0d12;
+ color:#fff;
+ max-width:900px;
+ margin:auto;
+ padding:30px;
 }
-
-h1{text-align:center;margin-bottom:30px}
-h1 span{color:var(--accent)}
 
 .card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:20px;
-  margin-bottom:20px;
+ background:#171b24;
+ padding:20px;
+ border-radius:12px;
+ margin-bottom:20px;
 }
 
-.card h3{color:var(--sub);margin-bottom:10px}
-
-input, textarea{
-  width:100%;
-  padding:14px;
-  border-radius:10px;
-  border:1px solid var(--border);
-  background:#0c0f14;
-  color:var(--text);
-  margin-top:10px;
+input,textarea{
+ width:100%;
+ padding:12px;
+ margin-top:10px;
+ background:#000;
+ color:#fff;
+ border:1px solid #333;
+ border-radius:8px;
 }
 
 button{
-  margin-top:12px;
-  padding:12px;
-  width:100%;
-  border-radius:10px;
-  border:1px solid var(--accent);
-  background:transparent;
-  color:var(--accent);
-  cursor:pointer;
+ margin-top:10px;
+ padding:12px;
+ width:100%;
+ border:1px solid #00ffff;
+ color:#00ffff;
+ background:none;
+ border-radius:8px;
 }
 
 button:hover{
-  background:var(--accent);
-  color:#000;
-}
-
-.btn-danger{
-  border-color:var(--danger);
-  color:var(--danger);
-}
-
-.btn-danger:hover{
-  background:var(--danger);
-  color:#fff;
+ background:#00ffff;
+ color:#000;
 }
 
 .ref{
-  margin-bottom:14px;
-  padding:14px;
-  border-left:3px solid var(--accent);
-  background:#0c0f14;
-  border-radius:8px;
-  line-height:1.7;
-  text-indent:-10px;
-}
-
-/* animación nueva cita */
-.ref.nueva{
- animation:flash 0.8s ease;
-}
-
-@keyframes flash{
- 0%{background:#5ad1ff33}
- 100%{background:transparent}
+ margin:10px 0;
+ padding:10px;
+ border-left:3px solid #00ffff;
 }
 </style>
 </head>
 
 <body>
 
-<h1>OFF<span>Apa</span> PRO</h1>
+<h1>OFFApa AI</h1>
 
 <div class="card">
-<h3>🔗 Link / DOI</h3>
-<input id="url" placeholder="Pega título o DOI">
-<button onclick="generar()">Generar cita</button>
+<input id="url" placeholder="DOI, link o título">
+<button onclick="generar()">Generar</button>
 </div>
 
 <div class="card">
-<h3>📝 Texto</h3>
-<textarea id="texto" placeholder="Pega texto aquí"></textarea>
+<textarea id="texto" placeholder="Pega texto"></textarea>
 <button onclick="generarDesdeTexto()">Analizar texto</button>
 </div>
 
 <div class="card">
-<h3>📄 PDF</h3>
 <input type="file" id="pdfFile">
 <button onclick="leerPDF()">Analizar PDF</button>
 </div>
 
 <div class="card" id="bibliografia">
-<h3>📚 Bibliografía</h3>
+<h3>Bibliografía</h3>
 <div id="resultado"></div>
-
 <button onclick="copiar()">Copiar</button>
-<button onclick="exportarWord()">Exportar Word</button>
-<button class="btn-danger" onclick="limpiarBibliografia()">🗑 Limpiar bibliografía</button>
+<button onclick="limpiar()">Limpiar</button>
 </div>
 
 <script>
 
-let referencias = [];
+let referencias = JSON.parse(localStorage.getItem("refs")||"[]");
 
-/* limpiar inputs automáticamente */
+/* ---------- UTILIDADES ---------- */
+
+function guardar(){
+ localStorage.setItem("refs",JSON.stringify(referencias));
+}
+
 function limpiarCampos(){
-  document.getElementById("url").value = "";
-  document.getElementById("texto").value = "";
-  document.getElementById("pdfFile").value = "";
-  document.getElementById("url").focus();
+ url.value="";
+ texto.value="";
+ pdfFile.value="";
+ url.focus();
 }
 
-function limpiarTexto(t){
- return t.replace(/\s+/g," ").trim();
+function scroll(){
+ document.getElementById("bibliografia").scrollIntoView({behavior:"smooth"});
 }
 
-function formatearAPA({autores,año,titulo,fuente=""}){
+function normalizar(t){
+ return t.toLowerCase().replace(/[^\w\s]/g,"");
+}
 
- autores = autores.map(n=>{
-   let p=n.split(" ");
-   let apellido=p.pop();
-   let ini=p.map(x=>x[0]+".").join(" ");
-   return `${apellido}, ${ini}`;
- });
+function similitud(a,b){
+ let A = normalizar(a).split(" ");
+ let B = normalizar(b).split(" ");
+ let comunes = A.filter(x=>B.includes(x));
+ return comunes.length / Math.max(A.length,1);
+}
 
- if(autores.length>1){
-   let u=autores.pop();
-   autores=autores.join(", ")+" & "+u;
+/* ---------- DOI ---------- */
+
+function detectarDOI(t){
+ let doi = t.match(/10.\d{4,9}\/[-._;()/:A-Z0-9]+/i);
+ return doi ? doi[0] : null;
+}
+
+/* ---------- FORMATO APA ---------- */
+
+function formatearAPA(item){
+
+ let autores = item.author?.map(a=>{
+   let apellido = a.family || "";
+   let inicial = a.given ? a.given[0]+"." : "";
+   return `${apellido}, ${inicial}`;
+ }) || ["Autor"];
+
+ if(autores.length > 1){
+   let ultimo = autores.pop();
+   autores = autores.join(", ") + " & " + ultimo;
  }else{
-   autores=autores[0];
+   autores = autores[0];
  }
 
- return `${autores} (${año}). ${titulo}. ${fuente}`;
+ let año = item.issued?.["date-parts"]?.[0]?.[0] || "s.f.";
+ let titulo = item.title?.[0] || "Sin título";
+ let fuente = item["container-title"]?.[0] || "";
+
+ return `${autores} (${año}). ${titulo}. ${fuente}.`;
 }
 
-function agregar(c){
- if(!referencias.includes(c)) referencias.unshift(c);
- mostrar();
- irABibliografia();
- limpiarCampos(); // 🔥 LIMPIA AUTOMÁTICAMENTE
-}
+/* ---------- MOSTRAR ---------- */
 
 function mostrar(){
- document.getElementById("resultado").innerHTML =
- referencias.map((r,i)=>
- `<div class="ref ${i===0?'nueva':''}">${r}</div>`
- ).join("");
+ resultado.innerHTML = referencias.map(r=>`<div class="ref">${r}</div>`).join("");
 }
 
-function irABibliografia(){
- document.getElementById("bibliografia").scrollIntoView({
-   behavior:"smooth"
- });
+mostrar();
+
+/* ---------- AGREGAR ---------- */
+
+function agregar(c){
+ if(!referencias.includes(c)){
+   referencias.unshift(c);
+   guardar();
+ }
+ mostrar();
+ scroll();
+ limpiarCampos();
 }
+
+/* ---------- BUSCAR MULTI FUENTE ---------- */
+
+async function buscarFuentes(query){
+
+ let resultados = [];
+
+ // CROSSREF
+ try{
+   let r = await fetch(`https://api.crossref.org/works?query=${encodeURIComponent(query)}&rows=3`);
+   let d = await r.json();
+
+   d.message.items.forEach(i=>{
+     resultados.push({
+       titulo:i.title?.[0]||"",
+       autores:(i.author||[]).map(a=>a.family).join(" "),
+       data:i
+     });
+   });
+ }catch(e){}
+
+ // SEMANTIC SCHOLAR
+ try{
+   let r = await fetch(`https://api.semanticscholar.org/graph/v1/paper/search?query=${encodeURIComponent(query)}&limit=3&fields=title,authors,year,venue`);
+   let d = await r.json();
+
+   d.data.forEach(p=>{
+     resultados.push({
+       titulo:p.title,
+       autores:p.authors.map(a=>a.name).join(" "),
+       data:{
+         title:[p.title],
+         author:p.authors.map(a=>{
+           let n=a.name.split(" ");
+           return {given:n[0],family:n.slice(1).join(" ")};
+         }),
+         issued:{"date-parts":[[p.year]]},
+         "container-title":[p.venue]
+       }
+     });
+   });
+ }catch(e){}
+
+ // OPEN LIBRARY
+ try{
+   let r = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}`);
+   let d = await r.json();
+
+   if(d.docs.length){
+     let b = d.docs[0];
+
+     resultados.push({
+       titulo:b.title,
+       autores:(b.author_name||["Autor"]).join(" "),
+       data:{
+         title:[b.title],
+         author:(b.author_name||["Autor"]).map(a=>{
+           let p=a.split(" ");
+           return {given:p[0],family:p.slice(1).join(" ")};
+         }),
+         issued:{"date-parts":[[b.first_publish_year]]},
+         "container-title":["Libro"]
+       }
+     });
+   }
+ }catch(e){}
+
+ return resultados;
+}
+
+/* ---------- GENERAR DESDE TEXTO (INTELIGENTE) ---------- */
+
+async function generarDesdeTexto(){
+
+ let texto = document.getElementById("texto").value;
+ if(!texto) return alert("Pega un texto");
+
+ let doi = detectarDOI(texto);
+
+ if(doi){
+   url.value = doi;
+   generar();
+   return;
+ }
+
+ let resultados = await buscarFuentes(texto);
+
+ if(!resultados.length){
+   alert("Sin resultados");
+   return;
+ }
+
+ resultados.forEach(r=>{
+   r.score = similitud(texto, r.titulo + " " + r.autores);
+ });
+
+ resultados.sort((a,b)=>b.score - a.score);
+
+ let mejor = resultados[0];
+
+ agregar(formatearAPA(mejor.data));
+}
+
+/* ---------- GENERAR NORMAL ---------- */
 
 async function generar(){
- let q=document.getElementById("url").value;
 
- let r=await fetch(`https://api.crossref.org/works?query=${encodeURIComponent(q)}&rows=1`);
- let d=await r.json();
+ let q = url.value;
 
- if(d.message.items.length){
-   let i=d.message.items[0];
+ let doi = detectarDOI(q);
 
-   let autores=i.author?.map(a=>`${a.given} ${a.family}`)||["Autor"];
-   let año=i.issued?.["date-parts"]?.[0]?.[0]||"s.f.";
-   let titulo=i.title?.[0]||"Sin título";
-   let fuente=i["container-title"]?.[0]||"";
+ let endpoint = doi
+   ? `https://api.crossref.org/works/${doi}`
+   : `https://api.crossref.org/works?query=${encodeURIComponent(q)}&rows=1`;
 
-   agregar(formatearAPA({autores,año,titulo,fuente}));
+ let r = await fetch(endpoint);
+ let d = await r.json();
+
+ let item = doi ? d.message : d.message.items[0];
+
+ if(item){
+   agregar(formatearAPA(item));
  }
 }
 
-function generarDesdeTexto(){
-
- let t = limpiarTexto(document.getElementById("texto").value);
- if(!t){ alert("Pega un texto"); return; }
-
- let autores = t.match(/([A-Z][a-z]+ [A-Z][a-z]+)/g) || ["Autor"];
- let año = t.match(/\b(19|20)\d{2}\b/)?.[0] || "s.f.";
- let titulo = t.split(".")[0];
-
- agregar(formatearAPA({autores:autores.slice(0,3),año,titulo}));
-}
+/* ---------- PDF ---------- */
 
 async function leerPDF(){
 
- let f=document.getElementById("pdfFile").files[0];
- if(!f)return;
+ let f = pdfFile.files[0];
+ if(!f) return;
 
- let reader=new FileReader();
+ let reader = new FileReader();
 
- reader.onload=async function(){
-   let pdf=await pdfjsLib.getDocument(new Uint8Array(this.result)).promise;
+ reader.onload = async function(){
 
-   let txt="";
+   let pdf = await pdfjsLib.getDocument(new Uint8Array(this.result)).promise;
+
+   let txt = "";
+
    for(let i=1;i<=Math.min(5,pdf.numPages);i++){
-     let p=await pdf.getPage(i);
-     let c=await p.getTextContent();
-     c.items.forEach(it=>txt+=it.str+" ");
+     let p = await pdf.getPage(i);
+     let c = await p.getTextContent();
+     c.items.forEach(it=>txt += it.str + " ");
    }
 
-   analizarPDF(txt);
+   texto.value = txt;
+   generarDesdeTexto();
  };
 
  reader.readAsArrayBuffer(f);
 }
 
-function analizarPDF(t){
-
- t=limpiarTexto(t);
-
- let autores=t.match(/[A-Z][a-z]+ [A-Z][a-z]+/g)?.slice(0,3)||["Autor"];
- let año=t.match(/\b(19|20)\d{2}\b/)?.[0]||"s.f.";
- let titulo=t.split(".")[0];
-
- agregar(formatearAPA({autores,año,titulo,fuente:"PDF"}));
-}
-
-function limpiarBibliografia(){
-
- if(confirm("¿Seguro que quieres borrar toda la bibliografía?")){
-   referencias = [];
-   document.getElementById("resultado").innerHTML = "";
- }
-}
+/* ---------- EXTRA ---------- */
 
 function copiar(){
  navigator.clipboard.writeText(referencias.join("\n\n"));
- alert("Copiado");
 }
 
-function exportarWord(){
- let blob=new Blob([referencias.join("\n\n")],{type:"application/msword"});
- let a=document.createElement("a");
- a.href=URL.createObjectURL(blob);
- a.download="bibliografia.doc";
- a.click();
+function limpiar(){
+ if(confirm("Borrar todo?")){
+   referencias=[];
+   guardar();
+   mostrar();
+ }
 }
 
 </script>
