@@ -3,153 +3,315 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OFFApa Premium</title>
+<title>OFFApa PRO</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
 <style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#000;
-  color:#fff;
+
+/* 🔥 RESET */
+*{box-sizing:border-box;margin:0;padding:0}
+
+/* 🎨 VARIABLES */
+:root{
+  --bg:#0b0d12;
+  --panel:#11151c;
+  --card:#171b24;
+  --border:#2a2f3a;
+  --text:#e8ecf1;
+  --sub:#8b93a7;
+  --accent:#5ad1ff;
+  --accent-soft:#5ad1ff22;
 }
 
-.container{
-  max-width:800px;
-  margin:auto;
-  padding:30px;
+/* 🌙 BODY */
+body{
+  font-family:'Inter',sans-serif;
+  background:radial-gradient(circle at top,#141922,#090b10);
+  color:var(--text);
+  display:flex;
+  min-height:100vh;
+}
+
+/* 🧭 SIDEBAR */
+.sidebar{
+  width:220px;
+  background:var(--panel);
+  border-right:1px solid var(--border);
+  padding:20px;
 }
 
 .logo{
-  text-align:center;
-  font-size:40px;
+  font-size:20px;
+  font-weight:600;
   margin-bottom:30px;
 }
-.logo .off{color:#00ffff}
-.logo .apa{color:#fff}
 
-.card{
-  background:#111;
-  padding:20px;
-  border-radius:12px;
-  margin-bottom:20px;
+.logo span{
+  color:var(--accent);
 }
 
-input{
+.menu button{
   width:100%;
-  padding:12px;
-  margin-top:10px;
+  text-align:left;
+  background:none;
+  border:none;
+  color:var(--sub);
+  padding:10px;
   border-radius:8px;
-  border:none;
-}
-
-button{
-  width:100%;
-  padding:12px;
-  margin-top:10px;
-  background:#00ffff;
-  border:none;
   cursor:pointer;
+  margin-bottom:8px;
 }
 
-#resultado{
-  margin-top:10px;
-  padding:15px;
-  background:#000;
-  min-height:80px;
+.menu button:hover{
+  background:var(--accent-soft);
+  color:var(--text);
 }
+
+/* 📦 MAIN */
+.main{
+  flex:1;
+  padding:30px;
+}
+
+/* 📦 CARDS */
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:20px;
+  margin-bottom:20px;
+  transition:0.3s;
+}
+
+.card:hover{
+  border-color:var(--accent);
+  box-shadow:0 0 0 1px var(--accent-soft);
+}
+
+.card h3{
+  color:var(--sub);
+  font-size:15px;
+  margin-bottom:10px;
+}
+
+/* ✍ INPUTS */
+input, textarea{
+  width:100%;
+  padding:14px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:#0c0f14;
+  color:var(--text);
+  margin-top:10px;
+}
+
+input:focus, textarea:focus{
+  outline:none;
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px var(--accent-soft);
+}
+
+/* 🔘 BOTONES */
+button{
+  margin-top:12px;
+  padding:12px;
+  width:100%;
+  border-radius:10px;
+  border:1px solid var(--accent);
+  background:transparent;
+  color:var(--accent);
+  cursor:pointer;
+  transition:0.25s;
+}
+
+button:hover{
+  background:var(--accent);
+  color:#000;
+}
+
+/* 📚 REFERENCIAS */
+.ref{
+  margin-bottom:14px;
+  padding:14px;
+  border-left:3px solid var(--accent);
+  background:#0c0f14;
+  border-radius:8px;
+  line-height:1.7;
+  text-indent:-10px;
+}
+
+/* ✨ ANIMACIÓN */
+.card{
+  animation:fade 0.5s ease;
+}
+
+@keyframes fade{
+  from{opacity:0; transform:translateY(10px)}
+  to{opacity:1; transform:translateY(0)}
+}
+
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<!-- 🧭 SIDEBAR -->
+<div class="sidebar">
+  <div class="logo">OFF<span>Apa</span></div>
 
-<div class="logo">
-<span class="off">OFF</span><span class="apa">Apa</span>
+  <div class="menu">
+    <button>Generar cita</button>
+    <button>Texto</button>
+    <button>PDF</button>
+    <button>Bibliografía</button>
+  </div>
+</div>
+
+<!-- 📦 MAIN -->
+<div class="main">
+
+<div class="card">
+<h3>🔗 Link / DOI</h3>
+<input id="url" placeholder="Pega título o DOI">
+<button onclick="generar()">Generar cita</button>
 </div>
 
 <div class="card">
-<h2>Generar cita</h2>
-<input id="input" placeholder="DOI, link o título">
-<button onclick="generar()">Generar</button>
+<h3>📝 Texto</h3>
+<textarea id="texto"></textarea>
+<button onclick="generarDesdeTexto()">Analizar texto</button>
 </div>
 
 <div class="card">
-<h2>Resultado</h2>
+<h3>📄 PDF</h3>
+<input type="file" id="pdfFile">
+<button onclick="leerPDF()">Analizar PDF</button>
+</div>
+
+<div class="card">
+<h3>📚 Bibliografía</h3>
 <div id="resultado"></div>
 <button onclick="copiar()">Copiar</button>
+<button onclick="exportarWord()">Exportar Word</button>
 </div>
 
 </div>
 
 <script>
-function formatearAPA(item){
- let autor = item.author?.map(a=>a.family).join(", ") || "Autor";
- let año = item.issued?.["date-parts"]?.[0]?.[0] || "s.f.";
- let titulo = item.title?.[0] || "Sin título";
- let revista = item["container-title"]?.[0] || "";
- let doi = item.DOI ? "https://doi.org/"+item.DOI : "";
 
- return `${autor} (${año}). ${titulo}. ${revista}. ${doi}`;
+let referencias = [];
+
+function limpiarTexto(t){
+ return t.replace(/\s+/g," ").trim();
 }
 
-// 🔥 FUNCIÓN QUE SI FUNCIONA
-async function fetchCrossRef(url){
- let proxy = "https://api.allorigins.win/raw?url=" + encodeURIComponent(url);
- let res = await fetch(proxy);
- return await res.json();
+function formatearAPA({autores,año,titulo,fuente=""}){
+
+ autores = autores.map(n=>{
+   let p=n.split(" ");
+   let apellido=p.pop();
+   let ini=p.map(x=>x[0]+".").join(" ");
+   return `${apellido}, ${ini}`;
+ });
+
+ if(autores.length>1){
+   let u=autores.pop();
+   autores=autores.join(", ")+" & "+u;
+ }else{
+   autores=autores[0];
+ }
+
+ return `${autores} (${año}). ${titulo}. ${fuente}`;
+}
+
+function agregar(c){
+ if(!referencias.includes(c)) referencias.push(c);
+ mostrar();
+}
+
+function mostrar(){
+ referencias.sort((a,b)=>a.localeCompare(b));
+ document.getElementById("resultado").innerHTML=
+ referencias.map(r=>`<div class="ref">${r}</div>`).join("");
 }
 
 async function generar(){
- let input = document.getElementById("input").value.trim();
- let resultado = document.getElementById("resultado");
+ let q=document.getElementById("url").value;
 
- if(!input){
-   resultado.innerText="⚠️ Escribe algo";
-   return;
+ let r=await fetch(`https://api.crossref.org/works?query=${encodeURIComponent(q)}&rows=1`);
+ let d=await r.json();
+
+ if(d.message.items.length){
+   let i=d.message.items[0];
+
+   let autores=i.author?.map(a=>`${a.given} ${a.family}`)||["Autor"];
+   let año=i.issued?.["date-parts"]?.[0]?.[0]||"s.f.";
+   let titulo=i.title?.[0]||"Sin título";
+   let fuente=i["container-title"]?.[0]||"";
+
+   agregar(formatearAPA({autores,año,titulo,fuente}));
  }
+}
 
- resultado.innerText="⏳ Buscando...";
+function generarDesdeTexto(){
+ let t=limpiarTexto(document.getElementById("texto").value);
 
- try{
-   let doi="";
+ let autores=t.match(/[A-Z][a-z]+ [A-Z][a-z]+/g)||["Autor"];
+ let año=t.match(/\b(19|20)\d{2}\b/)?.[0]||"s.f.";
+ let titulo=t.split(".")[0];
 
-   if(input.includes("doi.org")){
-     doi = input.split("doi.org/")[1];
-   } else if(input.startsWith("10.")){
-     doi = input;
+ agregar(formatearAPA({autores,año,titulo}));
+}
+
+async function leerPDF(){
+ let f=document.getElementById("pdfFile").files[0];
+ if(!f)return;
+
+ let reader=new FileReader();
+
+ reader.onload=async function(){
+   let pdf=await pdfjsLib.getDocument(new Uint8Array(this.result)).promise;
+
+   let txt="";
+   for(let i=1;i<=Math.min(5,pdf.numPages);i++){
+     let p=await pdf.getPage(i);
+     let c=await p.getTextContent();
+     c.items.forEach(it=>txt+=it.str+" ");
    }
 
-   // 🔹 1. Intentar DOI
-   if(doi){
-     let data = await fetchCrossRef(`https://api.crossref.org/works/${doi}`);
+   analizarPDF(txt);
+ };
 
-     if(data.message){
-       resultado.innerText = formatearAPA(data.message);
-       return;
-     }
-   }
+ reader.readAsArrayBuffer(f);
+}
 
-   // 🔹 2. Buscar por texto
-   let data = await fetchCrossRef(`https://api.crossref.org/works?query=${encodeURIComponent(input)}&rows=1`);
+function analizarPDF(t){
 
-   if(data.message.items.length > 0){
-     resultado.innerText = formatearAPA(data.message.items[0]);
-   } else {
-     resultado.innerText = "❌ No encontrado";
-   }
+ t=limpiarTexto(t);
 
- }catch(e){
-   console.error(e);
-   resultado.innerText="❌ Error real de conexión";
- }
+ let autores=t.match(/[A-Z][a-z]+ [A-Z][a-z]+/g)?.slice(0,3)||["Autor"];
+ let año=t.match(/\b(19|20)\d{2}\b/)?.[0]||"s.f.";
+ let titulo=t.split(".")[0];
+
+ agregar(formatearAPA({autores,año,titulo,fuente:"PDF"}));
 }
 
 function copiar(){
- let texto=document.getElementById("resultado").innerText;
- navigator.clipboard.writeText(texto);
+ navigator.clipboard.writeText(referencias.join("\n\n"));
  alert("Copiado");
 }
+
+function exportarWord(){
+
+ let blob=new Blob([referencias.join("\n\n")],{type:"application/msword"});
+ let a=document.createElement("a");
+ a.href=URL.createObjectURL(blob);
+ a.download="bibliografia.doc";
+ a.click();
+}
+
 </script>
 
 </body>
