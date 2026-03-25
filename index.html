@@ -5,31 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OFFApa Premium</title>
 
-<meta http-equiv="Content-Security-Policy" content="
-default-src 'self';
-script-src 'self';
-style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-font-src https://fonts.gstatic.com;
-connect-src https://api.crossref.org;
-">
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-
 <style>
-:root{--neon:#00ffff;--soft:#00ffff33}
-
 body{
   margin:0;
-  font-family:Inter;
-  color:#fff;
+  font-family:Arial;
   background:#000;
+  color:#fff;
 }
 
-.container{max-width:900px;margin:auto;padding:30px}
+.container{
+  max-width:800px;
+  margin:auto;
+  padding:30px;
+}
 
 .logo{
   text-align:center;
-  font-size:48px;
+  font-size:40px;
   margin-bottom:30px;
 }
 .logo .off{color:#00ffff}
@@ -37,43 +29,33 @@ body{
 
 .card{
   background:#111;
-  border-radius:16px;
   padding:20px;
+  border-radius:12px;
   margin-bottom:20px;
-  border:1px solid var(--soft);
 }
 
 input{
   width:100%;
   padding:12px;
   margin-top:10px;
-  border-radius:10px;
-  border:1px solid var(--soft);
-  background:#000;
-  color:#0ff;
+  border-radius:8px;
+  border:none;
 }
 
 button{
   width:100%;
   padding:12px;
   margin-top:10px;
-  border-radius:10px;
-  border:1px solid var(--neon);
-  background:transparent;
-  color:var(--neon);
+  background:#00ffff;
+  border:none;
   cursor:pointer;
-}
-
-button:hover{
-  background:var(--neon);
-  color:#000;
 }
 
 #resultado{
   margin-top:10px;
   padding:15px;
-  border:1px solid var(--soft);
-  min-height:100px;
+  background:#000;
+  min-height:80px;
 }
 </style>
 </head>
@@ -87,13 +69,13 @@ button:hover{
 </div>
 
 <div class="card">
-<h2>🔗 Generar cita</h2>
-<input id="input" placeholder="Pega DOI, link o título">
+<h2>Generar cita</h2>
+<input id="input" placeholder="DOI, link o título">
 <button onclick="generar()">Generar</button>
 </div>
 
 <div class="card">
-<h2>📄 Resultado</h2>
+<h2>Resultado</h2>
 <div id="resultado"></div>
 <button onclick="copiar()">Copiar</button>
 </div>
@@ -102,16 +84,20 @@ button:hover{
 
 <script>
 function formatearAPA(item){
- let autor = item.author?.map(a=>`${a.family}, ${a.given?.[0]||""}.`).join(", ") || "Autor";
+ let autor = item.author?.map(a=>a.family).join(", ") || "Autor";
  let año = item.issued?.["date-parts"]?.[0]?.[0] || "s.f.";
  let titulo = item.title?.[0] || "Sin título";
  let revista = item["container-title"]?.[0] || "";
- let volumen = item.volume || "";
- let numero = item.issue ? `(${item.issue})` : "";
- let paginas = item.page || "";
- let doi = item.DOI ? `https://doi.org/${item.DOI}` : "";
+ let doi = item.DOI ? "https://doi.org/"+item.DOI : "";
 
- return `${autor} (${año}). ${titulo}. ${revista}, ${volumen}${numero}, ${paginas}. ${doi}`;
+ return `${autor} (${año}). ${titulo}. ${revista}. ${doi}`;
+}
+
+// 🔥 FUNCIÓN QUE SI FUNCIONA
+async function fetchCrossRef(url){
+ let proxy = "https://api.allorigins.win/raw?url=" + encodeURIComponent(url);
+ let res = await fetch(proxy);
+ return await res.json();
 }
 
 async function generar(){
@@ -119,26 +105,24 @@ async function generar(){
  let resultado = document.getElementById("resultado");
 
  if(!input){
-   resultado.innerText="⚠️ Ingresa algo";
+   resultado.innerText="⚠️ Escribe algo";
    return;
  }
 
  resultado.innerText="⏳ Buscando...";
 
  try{
-   let doi = "";
+   let doi="";
 
-   // 🔹 detectar DOI
    if(input.includes("doi.org")){
      doi = input.split("doi.org/")[1];
    } else if(input.startsWith("10.")){
      doi = input;
    }
 
-   // 🔹 intento 1: DOI directo
+   // 🔹 1. Intentar DOI
    if(doi){
-     let res = await fetch(`https://api.crossref.org/works/${doi}`);
-     let data = await res.json();
+     let data = await fetchCrossRef(`https://api.crossref.org/works/${doi}`);
 
      if(data.message){
        resultado.innerText = formatearAPA(data.message);
@@ -146,24 +130,23 @@ async function generar(){
      }
    }
 
-   // 🔹 intento 2: búsqueda por texto
-   let res = await fetch(`https://api.crossref.org/works?query=${encodeURIComponent(input)}`);
-   let data = await res.json();
+   // 🔹 2. Buscar por texto
+   let data = await fetchCrossRef(`https://api.crossref.org/works?query=${encodeURIComponent(input)}&rows=1`);
 
    if(data.message.items.length > 0){
      resultado.innerText = formatearAPA(data.message.items[0]);
    } else {
-     resultado.innerText = "❌ No se encontró resultado";
+     resultado.innerText = "❌ No encontrado";
    }
 
  }catch(e){
    console.error(e);
-   resultado.innerText = "❌ Error al consultar";
+   resultado.innerText="❌ Error real de conexión";
  }
 }
 
 function copiar(){
- let texto = document.getElementById("resultado").innerText;
+ let texto=document.getElementById("resultado").innerText;
  navigator.clipboard.writeText(texto);
  alert("Copiado");
 }
