@@ -9,14 +9,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
 <style>
-
-/* 🔥 RESET */
 *{box-sizing:border-box;margin:0;padding:0}
 
-/* 🎨 VARIABLES */
 :root{
   --bg:#0b0d12;
-  --panel:#11151c;
   --card:#171b24;
   --border:#2a2f3a;
   --text:#e8ecf1;
@@ -25,78 +21,35 @@
   --accent-soft:#5ad1ff22;
 }
 
-/* 🌙 BODY */
 body{
   font-family:'Inter',sans-serif;
   background:radial-gradient(circle at top,#141922,#090b10);
   color:var(--text);
-  display:flex;
-  min-height:100vh;
+  max-width:900px;
+  margin:auto;
+  padding:30px 20px;
 }
 
-/* 🧭 SIDEBAR */
-.sidebar{
-  width:220px;
-  background:var(--panel);
-  border-right:1px solid var(--border);
-  padding:20px;
-}
-
-.logo{
-  font-size:20px;
-  font-weight:600;
+h1{
+  text-align:center;
   margin-bottom:30px;
 }
 
-.logo span{
-  color:var(--accent);
-}
+h1 span{color:var(--accent)}
 
-.menu button{
-  width:100%;
-  text-align:left;
-  background:none;
-  border:none;
-  color:var(--sub);
-  padding:10px;
-  border-radius:8px;
-  cursor:pointer;
-  margin-bottom:8px;
-}
-
-.menu button:hover{
-  background:var(--accent-soft);
-  color:var(--text);
-}
-
-/* 📦 MAIN */
-.main{
-  flex:1;
-  padding:30px;
-}
-
-/* 📦 CARDS */
 .card{
   background:var(--card);
   border:1px solid var(--border);
   border-radius:14px;
   padding:20px;
   margin-bottom:20px;
-  transition:0.3s;
-}
-
-.card:hover{
-  border-color:var(--accent);
-  box-shadow:0 0 0 1px var(--accent-soft);
 }
 
 .card h3{
   color:var(--sub);
-  font-size:15px;
   margin-bottom:10px;
 }
 
-/* ✍ INPUTS */
 input, textarea{
   width:100%;
   padding:14px;
@@ -113,7 +66,6 @@ input:focus, textarea:focus{
   box-shadow:0 0 0 2px var(--accent-soft);
 }
 
-/* 🔘 BOTONES */
 button{
   margin-top:12px;
   padding:12px;
@@ -123,7 +75,6 @@ button{
   background:transparent;
   color:var(--accent);
   cursor:pointer;
-  transition:0.25s;
 }
 
 button:hover{
@@ -131,7 +82,6 @@ button:hover{
   color:#000;
 }
 
-/* 📚 REFERENCIAS */
 .ref{
   margin-bottom:14px;
   padding:14px;
@@ -141,36 +91,12 @@ button:hover{
   line-height:1.7;
   text-indent:-10px;
 }
-
-/* ✨ ANIMACIÓN */
-.card{
-  animation:fade 0.5s ease;
-}
-
-@keyframes fade{
-  from{opacity:0; transform:translateY(10px)}
-  to{opacity:1; transform:translateY(0)}
-}
-
 </style>
 </head>
 
 <body>
 
-<!-- 🧭 SIDEBAR -->
-<div class="sidebar">
-  <div class="logo">OFF<span>Apa</span></div>
-
-  <div class="menu">
-    <button>Generar cita</button>
-    <button>Texto</button>
-    <button>PDF</button>
-    <button>Bibliografía</button>
-  </div>
-</div>
-
-<!-- 📦 MAIN -->
-<div class="main">
+<h1>OFF<span>Apa</span> PRO</h1>
 
 <div class="card">
 <h3>🔗 Link / DOI</h3>
@@ -180,7 +106,7 @@ button:hover{
 
 <div class="card">
 <h3>📝 Texto</h3>
-<textarea id="texto"></textarea>
+<textarea id="texto" placeholder="Pega texto aquí"></textarea>
 <button onclick="generarDesdeTexto()">Analizar texto</button>
 </div>
 
@@ -197,8 +123,6 @@ button:hover{
 <button onclick="exportarWord()">Exportar Word</button>
 </div>
 
-</div>
-
 <script>
 
 let referencias = [];
@@ -207,6 +131,7 @@ function limpiarTexto(t){
  return t.replace(/\s+/g," ").trim();
 }
 
+// 🔥 FORMATO APA
 function formatearAPA({autores,año,titulo,fuente=""}){
 
  autores = autores.map(n=>{
@@ -226,18 +151,22 @@ function formatearAPA({autores,año,titulo,fuente=""}){
  return `${autores} (${año}). ${titulo}. ${fuente}`;
 }
 
+// 📚 AGREGAR
 function agregar(c){
  if(!referencias.includes(c)) referencias.push(c);
  mostrar();
 }
 
+// 📚 MOSTRAR
 function mostrar(){
  referencias.sort((a,b)=>a.localeCompare(b));
  document.getElementById("resultado").innerHTML=
  referencias.map(r=>`<div class="ref">${r}</div>`).join("");
 }
 
+// 🔎 LINK
 async function generar(){
+
  let q=document.getElementById("url").value;
 
  let r=await fetch(`https://api.crossref.org/works?query=${encodeURIComponent(q)}&rows=1`);
@@ -255,17 +184,56 @@ async function generar(){
  }
 }
 
+// 🧠 TEXTO IA SIMULADA
 function generarDesdeTexto(){
- let t=limpiarTexto(document.getElementById("texto").value);
 
- let autores=t.match(/[A-Z][a-z]+ [A-Z][a-z]+/g)||["Autor"];
- let año=t.match(/\b(19|20)\d{2}\b/)?.[0]||"s.f.";
- let titulo=t.split(".")[0];
+ let t = limpiarTexto(document.getElementById("texto").value);
 
- agregar(formatearAPA({autores,año,titulo}));
+ if(!t){
+   alert("Pega un texto primero");
+   return;
+ }
+
+ t = t.replace(/\n/g," ");
+
+ let autores = [];
+
+ let match1 = t.match(/([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+),\s([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)/g);
+ let match2 = t.match(/([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)\s([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)/g);
+
+ if(match1){
+   autores = match1.map(a=>{
+     let p = a.split(",");
+     return `${p[1].trim()} ${p[0].trim()}`;
+   });
+ }
+ else if(match2){
+   autores = match2.slice(0,3);
+ }
+
+ if(autores.length === 0){
+   autores = ["Autor"];
+ }
+
+ let añoMatch = t.match(/\b(19|20)\d{2}\b/);
+ let año = añoMatch ? añoMatch[0] : "s.f.";
+
+ let titulo = t.includes(".") ? t.split(".")[0] : t.slice(0,120);
+
+ titulo = titulo.trim();
+
+ let cita = formatearAPA({
+   autores: autores.slice(0,3),
+   año,
+   titulo
+ });
+
+ agregar(cita);
 }
 
+// 📄 PDF
 async function leerPDF(){
+
  let f=document.getElementById("pdfFile").files[0];
  if(!f)return;
 
@@ -298,13 +266,14 @@ function analizarPDF(t){
  agregar(formatearAPA({autores,año,titulo,fuente:"PDF"}));
 }
 
+// 📋 COPIAR
 function copiar(){
  navigator.clipboard.writeText(referencias.join("\n\n"));
  alert("Copiado");
 }
 
+// 📤 WORD
 function exportarWord(){
-
  let blob=new Blob([referencias.join("\n\n")],{type:"application/msword"});
  let a=document.createElement("a");
  a.href=URL.createObjectURL(blob);
