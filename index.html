@@ -19,6 +19,7 @@
   --sub:#8b93a7;
   --accent:#5ad1ff;
   --accent-soft:#5ad1ff22;
+  --danger:#ff4d4d;
 }
 
 body{
@@ -28,13 +29,10 @@ body{
   max-width:900px;
   margin:auto;
   padding:30px 20px;
+  scroll-behavior:smooth;
 }
 
-h1{
-  text-align:center;
-  margin-bottom:30px;
-}
-
+h1{text-align:center;margin-bottom:30px}
 h1 span{color:var(--accent)}
 
 .card{
@@ -45,10 +43,7 @@ h1 span{color:var(--accent)}
   margin-bottom:20px;
 }
 
-.card h3{
-  color:var(--sub);
-  margin-bottom:10px;
-}
+.card h3{color:var(--sub);margin-bottom:10px}
 
 input, textarea{
   width:100%;
@@ -58,12 +53,6 @@ input, textarea{
   background:#0c0f14;
   color:var(--text);
   margin-top:10px;
-}
-
-input:focus, textarea:focus{
-  outline:none;
-  border-color:var(--accent);
-  box-shadow:0 0 0 2px var(--accent-soft);
 }
 
 button{
@@ -82,6 +71,16 @@ button:hover{
   color:#000;
 }
 
+.btn-danger{
+  border-color:var(--danger);
+  color:var(--danger);
+}
+
+.btn-danger:hover{
+  background:var(--danger);
+  color:#fff;
+}
+
 .ref{
   margin-bottom:14px;
   padding:14px;
@@ -90,6 +89,16 @@ button:hover{
   border-radius:8px;
   line-height:1.7;
   text-indent:-10px;
+}
+
+/* animación nueva cita */
+.ref.nueva{
+ animation:flash 0.8s ease;
+}
+
+@keyframes flash{
+ 0%{background:#5ad1ff33}
+ 100%{background:transparent}
 }
 </style>
 </head>
@@ -116,22 +125,31 @@ button:hover{
 <button onclick="leerPDF()">Analizar PDF</button>
 </div>
 
-<div class="card">
+<div class="card" id="bibliografia">
 <h3>📚 Bibliografía</h3>
 <div id="resultado"></div>
+
 <button onclick="copiar()">Copiar</button>
 <button onclick="exportarWord()">Exportar Word</button>
+<button class="btn-danger" onclick="limpiarBibliografia()">🗑 Limpiar bibliografía</button>
 </div>
 
 <script>
 
 let referencias = [];
 
+/* limpiar inputs automáticamente */
+function limpiarCampos(){
+  document.getElementById("url").value = "";
+  document.getElementById("texto").value = "";
+  document.getElementById("pdfFile").value = "";
+  document.getElementById("url").focus();
+}
+
 function limpiarTexto(t){
  return t.replace(/\s+/g," ").trim();
 }
 
-// 🔥 FORMATO APA
 function formatearAPA({autores,año,titulo,fuente=""}){
 
  autores = autores.map(n=>{
@@ -151,22 +169,27 @@ function formatearAPA({autores,año,titulo,fuente=""}){
  return `${autores} (${año}). ${titulo}. ${fuente}`;
 }
 
-// 📚 AGREGAR
 function agregar(c){
- if(!referencias.includes(c)) referencias.push(c);
+ if(!referencias.includes(c)) referencias.unshift(c);
  mostrar();
+ irABibliografia();
+ limpiarCampos(); // 🔥 LIMPIA AUTOMÁTICAMENTE
 }
 
-// 📚 MOSTRAR
 function mostrar(){
- referencias.sort((a,b)=>a.localeCompare(b));
- document.getElementById("resultado").innerHTML=
- referencias.map(r=>`<div class="ref">${r}</div>`).join("");
+ document.getElementById("resultado").innerHTML =
+ referencias.map((r,i)=>
+ `<div class="ref ${i===0?'nueva':''}">${r}</div>`
+ ).join("");
 }
 
-// 🔎 LINK
-async function generar(){
+function irABibliografia(){
+ document.getElementById("bibliografia").scrollIntoView({
+   behavior:"smooth"
+ });
+}
 
+async function generar(){
  let q=document.getElementById("url").value;
 
  let r=await fetch(`https://api.crossref.org/works?query=${encodeURIComponent(q)}&rows=1`);
@@ -184,54 +207,18 @@ async function generar(){
  }
 }
 
-// 🧠 TEXTO IA SIMULADA
 function generarDesdeTexto(){
 
  let t = limpiarTexto(document.getElementById("texto").value);
+ if(!t){ alert("Pega un texto"); return; }
 
- if(!t){
-   alert("Pega un texto primero");
-   return;
- }
+ let autores = t.match(/([A-Z][a-z]+ [A-Z][a-z]+)/g) || ["Autor"];
+ let año = t.match(/\b(19|20)\d{2}\b/)?.[0] || "s.f.";
+ let titulo = t.split(".")[0];
 
- t = t.replace(/\n/g," ");
-
- let autores = [];
-
- let match1 = t.match(/([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+),\s([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)/g);
- let match2 = t.match(/([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)\s([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)/g);
-
- if(match1){
-   autores = match1.map(a=>{
-     let p = a.split(",");
-     return `${p[1].trim()} ${p[0].trim()}`;
-   });
- }
- else if(match2){
-   autores = match2.slice(0,3);
- }
-
- if(autores.length === 0){
-   autores = ["Autor"];
- }
-
- let añoMatch = t.match(/\b(19|20)\d{2}\b/);
- let año = añoMatch ? añoMatch[0] : "s.f.";
-
- let titulo = t.includes(".") ? t.split(".")[0] : t.slice(0,120);
-
- titulo = titulo.trim();
-
- let cita = formatearAPA({
-   autores: autores.slice(0,3),
-   año,
-   titulo
- });
-
- agregar(cita);
+ agregar(formatearAPA({autores:autores.slice(0,3),año,titulo}));
 }
 
-// 📄 PDF
 async function leerPDF(){
 
  let f=document.getElementById("pdfFile").files[0];
@@ -266,13 +253,19 @@ function analizarPDF(t){
  agregar(formatearAPA({autores,año,titulo,fuente:"PDF"}));
 }
 
-// 📋 COPIAR
+function limpiarBibliografia(){
+
+ if(confirm("¿Seguro que quieres borrar toda la bibliografía?")){
+   referencias = [];
+   document.getElementById("resultado").innerHTML = "";
+ }
+}
+
 function copiar(){
  navigator.clipboard.writeText(referencias.join("\n\n"));
  alert("Copiado");
 }
 
-// 📤 WORD
 function exportarWord(){
  let blob=new Blob([referencias.join("\n\n")],{type:"application/msword"});
  let a=document.createElement("a");
