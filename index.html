@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OFFApa AI PRO</title>
 
+<!-- =========================
+     © 2026 OFFApa AI PRO
+     Autor: Tu Proyecto
+     Licencia: Uso educativo y personal
+     Prohibida su reventa o redistribución sin autorización
+========================= -->
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
@@ -18,11 +25,17 @@ body{
  padding:30px;
 }
 
+h1{
+ font-weight:600;
+ letter-spacing:1px;
+}
+
 .card{
  background:#171b24;
  padding:20px;
- border-radius:12px;
+ border-radius:14px;
  margin-bottom:20px;
+ box-shadow:0 0 15px rgba(0,255,255,0.05);
 }
 
 input,textarea{
@@ -32,7 +45,7 @@ input,textarea{
  background:#000;
  color:#fff;
  border:1px solid #333;
- border-radius:8px;
+ border-radius:10px;
 }
 
 button{
@@ -42,7 +55,8 @@ button{
  border:1px solid #00ffff;
  color:#00ffff;
  background:none;
- border-radius:8px;
+ border-radius:10px;
+ cursor:pointer;
 }
 
 button:hover{
@@ -52,8 +66,17 @@ button:hover{
 
 .ref{
  margin:10px 0;
- padding:10px;
+ padding:12px;
  border-left:3px solid #00ffff;
+ background:#0f131a;
+ border-radius:6px;
+}
+
+footer{
+ margin-top:30px;
+ font-size:12px;
+ opacity:0.6;
+ text-align:center;
 }
 </style>
 </head>
@@ -63,18 +86,18 @@ button:hover{
 <h1>OFFApa AI PRO</h1>
 
 <div class="card">
-<input id="url" placeholder="DOI, título o link">
+<input id="url" placeholder="DOI, título o enlace">
 <button onclick="generar()">Generar cita directa</button>
 </div>
 
 <div class="card">
-<textarea id="texto" placeholder="Pega un párrafo para encontrar su fuente"></textarea>
+<textarea id="texto" placeholder="Pega un párrafo para detectar su fuente"></textarea>
 <button onclick="generarDesdeTexto()">Detectar documento automáticamente</button>
 </div>
 
 <div class="card">
 <input type="file" id="pdfFile">
-<button onclick="leerPDF()">Analizar PDF</button>
+<p style="opacity:0.6;font-size:12px;">El análisis se realiza automáticamente</p>
 </div>
 
 <div class="card" id="bibliografia">
@@ -84,15 +107,28 @@ button:hover{
 <button onclick="limpiar()">Limpiar</button>
 </div>
 
+<footer>
+© 2026 OFFApa AI PRO — Sistema inteligente de generación de citas
+</footer>
+
 <script>
 
-let referencias = JSON.parse(localStorage.getItem("refs")||"[]");
-
-/* ---------- UTILIDADES ---------- */
+/* ========================
+   SESIÓN TEMPORAL
+======================== */
+let referencias = JSON.parse(sessionStorage.getItem("refs")||"[]");
 
 function guardar(){
- localStorage.setItem("refs",JSON.stringify(referencias));
+ sessionStorage.setItem("refs", JSON.stringify(referencias));
 }
+
+window.addEventListener("beforeunload",()=>{
+ sessionStorage.removeItem("refs");
+});
+
+/* ========================
+   UTILIDADES
+======================== */
 
 function limpiarCampos(){
  url.value="";
@@ -116,14 +152,14 @@ function similitud(a,b){
  return comunes.length / Math.max(A.length,1);
 }
 
-/* ---------- DOI ---------- */
-
 function detectarDOI(t){
  let doi = t.match(/10.\d{4,9}\/[-._;()/:A-Z0-9]+/i);
  return doi ? doi[0] : null;
 }
 
-/* ---------- FORMATO APA ---------- */
+/* ========================
+   FORMATO APA
+======================== */
 
 function formatearAPA(item){
 
@@ -147,15 +183,15 @@ function formatearAPA(item){
  return `${autores} (${año}). ${titulo}. ${fuente}.`;
 }
 
-/* ---------- MOSTRAR ---------- */
+/* ========================
+   UI
+======================== */
 
 function mostrar(){
  resultado.innerHTML = referencias.map(r=>`<div class="ref">${r}</div>`).join("");
 }
 
 mostrar();
-
-/* ---------- AGREGAR ---------- */
 
 function agregar(c){
  if(!referencias.includes(c)){
@@ -167,13 +203,14 @@ function agregar(c){
  limpiarCampos();
 }
 
-/* ---------- BUSQUEDA MULTI MOTOR ---------- */
+/* ========================
+   BUSQUEDA MULTI MOTOR
+======================== */
 
 async function buscarDocumentos(query){
 
  let candidatos = [];
 
- /* 🔥 OPENALEX */
  try{
    let r = await fetch(`https://api.openalex.org/works?search=${encodeURIComponent(query)}&per-page=5`);
    let d = await r.json();
@@ -195,7 +232,6 @@ async function buscarDocumentos(query){
    });
  }catch(e){}
 
- /* 🔥 SEMANTIC */
  try{
    let r = await fetch(`https://api.semanticscholar.org/graph/v1/paper/search?query=${encodeURIComponent(query)}&limit=5&fields=title,authors,year,venue`);
    let d = await r.json();
@@ -220,23 +256,24 @@ async function buscarDocumentos(query){
  return candidatos;
 }
 
-/* ---------- DETECTAR DOCUMENTO DESDE TEXTO ---------- */
+/* ========================
+   TEXTO → DOCUMENTO
+======================== */
 
 async function generarDesdeTexto(){
 
- let texto = document.getElementById("texto").value.trim();
- if(!texto) return alert("Pega un texto");
+ let textoInput = document.getElementById("texto").value.trim();
+ if(!textoInput) return alert("Pega texto");
 
- let doi = detectarDOI(texto);
+ let doi = detectarDOI(textoInput);
+
  if(doi){
    url.value = doi;
    generar();
    return;
  }
 
- // 🔥 FRASE CLAVE
- let fragmento = texto.split(" ").slice(0,30).join(" ");
-
+ let fragmento = textoInput.split(" ").slice(0,30).join(" ");
  let candidatos = await buscarDocumentos(fragmento);
 
  if(!candidatos.length){
@@ -244,26 +281,22 @@ async function generarDesdeTexto(){
    return;
  }
 
- // 🔥 COMPARACIÓN
  candidatos.forEach(c=>{
-   c.score = similitud(texto, c.titulo + " " + c.autores);
+   c.score = similitud(textoInput, c.titulo + " " + c.autores);
  });
 
  candidatos.sort((a,b)=>b.score - a.score);
 
- let mejor = candidatos[0];
-
- console.log("Documento encontrado:", mejor);
-
- agregar(formatearAPA(mejor.data));
+ agregar(formatearAPA(candidatos[0].data));
 }
 
-/* ---------- GENERAR DIRECTO ---------- */
+/* ========================
+   GENERAR DIRECTO
+======================== */
 
 async function generar(){
 
  let q = url.value;
-
  let doi = detectarDOI(q);
 
  let endpoint = doi
@@ -280,12 +313,14 @@ async function generar(){
  }
 }
 
-/* ---------- PDF ---------- */
+/* ========================
+   PDF AUTOMÁTICO
+======================== */
 
-async function leerPDF(){
+document.getElementById("pdfFile").addEventListener("change", async function(){
 
- let f = pdfFile.files[0];
- if(!f) return;
+ let file = this.files[0];
+ if(!file) return;
 
  let reader = new FileReader();
 
@@ -293,29 +328,40 @@ async function leerPDF(){
 
    let pdf = await pdfjsLib.getDocument(new Uint8Array(this.result)).promise;
 
-   let txt = "";
+   let texto = "";
 
-   for(let i=1;i<=Math.min(5,pdf.numPages);i++){
-     let p = await pdf.getPage(i);
-     let c = await p.getTextContent();
-     c.items.forEach(it=>txt += it.str + " ");
+   for(let i=1;i<=Math.min(3,pdf.numPages);i++){
+     let page = await pdf.getPage(i);
+     let content = await page.getTextContent();
+     content.items.forEach(it=> texto += it.str + " ");
    }
 
-   texto.value = txt;
-   generarDesdeTexto();
+   let doi = detectarDOI(texto);
+
+   if(doi){
+     url.value = doi;
+     generar();
+   }else{
+     document.getElementById("texto").value = texto;
+     generarDesdeTexto();
+   }
+
  };
 
- reader.readAsArrayBuffer(f);
-}
+ reader.readAsArrayBuffer(file);
 
-/* ---------- EXTRA ---------- */
+});
+
+/* ========================
+   EXTRA
+======================== */
 
 function copiar(){
  navigator.clipboard.writeText(referencias.join("\n\n"));
 }
 
 function limpiar(){
- if(confirm("Borrar todo?")){
+ if(confirm("¿Borrar toda la bibliografía?")){
    referencias=[];
    guardar();
    mostrar();
