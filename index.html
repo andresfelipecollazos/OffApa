@@ -15,12 +15,13 @@ img-src 'self' data:;
 ">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
 <style>
 :root{
   --neon:#00ffff;
+  --neon-soft:#00ffff55;
 }
 
 body{
@@ -32,52 +33,85 @@ body{
 
 .app{
   display:grid;
-  grid-template-columns:250px 1fr;
+  grid-template-columns:260px 1fr;
   min-height:100vh;
 }
 
 .sidebar{
   background:rgba(10,10,10,0.95);
-  border-right:1px solid #00ffff22;
-  padding:20px;
-  box-shadow:0 0 20px #00ffff22;
+  border-right:1px solid var(--neon-soft);
+  padding:25px 20px;
+  box-shadow:0 0 25px #00ffff22;
 }
 
+/* 🔥 LOGO PREMIUM */
 .logo{
   font-family:'Playfair Display';
-  font-size:32px;
+  font-style:italic;
+  font-size:36px;
   color:var(--neon);
-  text-shadow:0 0 10px var(--neon);
+  letter-spacing:1px;
+  text-shadow:
+    0 0 5px var(--neon),
+    0 0 15px var(--neon),
+    0 0 30px var(--neon),
+    0 0 60px var(--neon);
+  animation:glow 2s ease-in-out infinite alternate;
   margin-bottom:30px;
+}
+
+@keyframes glow{
+  from{ text-shadow:0 0 5px var(--neon),0 0 20px var(--neon);} 
+  to{ text-shadow:0 0 15px var(--neon),0 0 60px var(--neon);} 
 }
 
 .menu button{
   width:100%;
-  margin-top:10px;
-  padding:10px;
-  background:none;
-  border:1px solid #00ffff33;
+  margin-top:12px;
+  padding:12px;
+  background:transparent;
+  border:1px solid var(--neon-soft);
   color:var(--neon);
-  border-radius:10px;
+  border-radius:12px;
+  transition:0.3s;
+}
+
+.menu button:hover{
+  background:var(--neon);
+  color:#000;
+  box-shadow:0 0 15px var(--neon);
 }
 
 .main{
-  padding:30px;
+  padding:35px;
 }
 
+/* 🧊 TARJETAS MEJOR DEFINIDAS */
 .card{
-  background:rgba(15,15,15,0.85);
-  backdrop-filter:blur(10px);
-  border-radius:20px;
+  background:rgba(15,15,15,0.9);
+  border-radius:18px;
   padding:25px;
-  box-shadow:0 0 20px #00ffff22;
-  border:1px solid #00ffff22;
-  margin-bottom:20px;
+  margin-bottom:25px;
+  border:1px solid var(--neon-soft);
+  box-shadow:
+    0 0 10px #00ffff22,
+    inset 0 0 10px #00ffff11;
+  transition:0.3s;
 }
 
-h2{
-  margin-top:0;
+.card:hover{
+  box-shadow:
+    0 0 25px #00ffff55,
+    inset 0 0 15px #00ffff22;
+}
+
+/* 🏷️ TÍTULOS DE SECCIÓN */
+.card h2{
+  margin:0 0 15px;
+  font-size:18px;
   color:var(--neon);
+  border-bottom:1px solid var(--neon-soft);
+  padding-bottom:8px;
 }
 
 input,textarea{
@@ -85,10 +119,10 @@ input,textarea{
   padding:14px;
   margin-top:10px;
   border-radius:12px;
-  border:1px solid #00ffff33;
+  border:1px solid var(--neon-soft);
   background:#000;
   color:var(--neon);
-  box-shadow:0 0 10px #00ffff22 inset;
+  box-shadow:inset 0 0 10px #00ffff22;
 }
 
 input:focus,textarea:focus{
@@ -99,7 +133,7 @@ input:focus,textarea:focus{
 button.action{
   width:100%;
   padding:14px;
-  margin-top:10px;
+  margin-top:12px;
   border-radius:12px;
   border:1px solid var(--neon);
   background:transparent;
@@ -114,10 +148,11 @@ button.action:hover{
 }
 
 #resultado{
-  margin-top:15px;
+  margin-top:10px;
   padding:15px;
   border-radius:12px;
-  border:1px solid #00ffff33;
+  border:1px solid var(--neon-soft);
+  box-shadow:inset 0 0 10px #00ffff22;
 }
 
 li{
@@ -125,7 +160,7 @@ li{
   margin-top:8px;
   padding:10px;
   border-radius:10px;
-  border:1px solid #00ffff22;
+  border:1px solid var(--neon-soft);
 }
 
 </style>
@@ -137,41 +172,41 @@ li{
 <div class="sidebar">
   <div class="logo">OffApa</div>
   <div class="menu">
-    <button>Generador</button>
-    <button>Historial</button>
+    <button>⚡ Generador</button>
+    <button>📚 Historial</button>
   </div>
 </div>
 
 <div class="main">
 
 <div class="card">
-<h2>Generar desde link</h2>
+<h2>🔗 Generar desde link</h2>
 <input id="url" placeholder="Pega link o DOI">
 <button class="action" onclick="generarDesdeLink()">Generar cita</button>
 </div>
 
 <div class="card">
-<h2>Resultado</h2>
+<h2>📄 Resultado</h2>
 <div id="resultado"></div>
-<button class="action" onclick="copiar()">Copiar</button>
+<button class="action" onclick="copiar()">Copiar cita</button>
 </div>
 
 <div class="card">
-<h2>Texto</h2>
-<textarea id="texto"></textarea>
-<button class="action" onclick="generarDesdeTexto()">Generar</button>
+<h2>📝 Texto</h2>
+<textarea id="texto" placeholder="Pega texto aquí"></textarea>
+<button class="action" onclick="generarDesdeTexto()">Generar desde texto</button>
 </div>
 
 <div class="card">
-<h2>PDF</h2>
+<h2>📑 PDF</h2>
 <input type="file" id="pdf">
 <button class="action" onclick="leerPDF()">Leer PDF</button>
 </div>
 
 <div class="card">
-<h2>Historial</h2>
+<h2>📚 Historial</h2>
 <ul id="historial"></ul>
-<button class="action" onclick="limpiarHistorial()">Limpiar</button>
+<button class="action" onclick="limpiarHistorial()">Limpiar historial</button>
 </div>
 
 </div>
