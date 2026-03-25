@@ -2,49 +2,158 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>OffApa</title>
+<title>OffApa PRO</title>
 
-<!-- Google AdSense -->
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7253559274757056"
-crossorigin="anonymous"></script>
+<!-- 🔐 SEGURIDAD -->
+<meta http-equiv="Content-Security-Policy" content="
+default-src 'self';
+script-src 'self' https://cdnjs.cloudflare.com;
+style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+font-src https://fonts.gstatic.com;
+connect-src https://api.crossref.org;
+img-src 'self' data:;
+">
+
+<meta name="author" content="OffApa">
+
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'>
+<rect width='200' height='200' fill='black'/>
+<text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle'
+font-size='48' fill='cyan' font-family='Arial' font-weight='bold'>OffApa</text>
+</svg>">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
 <style>
-body {
-  background-color: black;
-  color: white;
-  font-family: Arial;
-  text-align: center;
-}
-
-footer {
-  margin-top: 40px;
-  padding: 20px;
-  border-top: 1px solid #444;
-}
-
-a {
-  color: cyan;
-  text-decoration: none;
-}
+body {font-family:Inter;background:#000;color:#fff;margin:0;user-select:none}
+.box {max-width:800px;margin:auto;padding:20px}
+.logo{font-family:'Playfair Display';font-size:40px;text-align:center;color:#00ffff}
+input,textarea,button{width:100%;margin-top:10px;padding:12px;border-radius:10px;border:1px solid #00ffff33;background:#000;color:#fff}
+button:hover{background:#00ffff;color:#000}
+#resultado{margin-top:15px;padding:15px;border:1px solid #00ffff33}
+li{border:1px solid #00ffff33;margin-top:5px;padding:10px;border-radius:10px}
+.footer{text-align:center;font-size:12px;color:#666;margin-top:30px}
 </style>
-
 </head>
 
 <body>
+<div class="box">
+<h1 class="logo">OffApa</h1>
 
-<h1><i>OffApa</i></h1>
+<input id="url" placeholder="Pega link o DOI">
+<button onclick="generarDesdeLink()">⚡ Generar cita</button>
 
-<p>Generador automático de citas bibliográficas en formato APA.</p>
+<div id="resultado"></div>
+<button onclick="copiar()">Copiar cita</button>
 
-<input type="text" placeholder="Pega un link o texto">
-<br><br>
-<button>Generar cita</button>
+<h3>📚 Historial</h3>
+<ul id="historial"></ul>
+<button onclick="limpiarHistorial()">Limpiar historial</button>
 
-<footer>
-<a href="privacy.html">Privacidad</a> |
-<a href="terms.html">Términos</a> |
-<a href="contact.html">Contacto</a>
-</footer>
+<hr>
+<textarea id="texto"></textarea>
+<button onclick="generarDesdeTexto()">Generar desde texto</button>
 
+<hr>
+<input type="file" id="pdf">
+<button onclick="leerPDF()">Leer PDF</button>
+
+<div class="footer">© 2026 OffApa PRO</div>
+</div>
+
+<script>
+
+// 🔐 BLOQUEOS
+ document.addEventListener("contextmenu", e => e.preventDefault());
+ document.onkeydown = e => {
+  if (e.keyCode == 123) return false;
+  if (e.ctrlKey && e.shiftKey && e.keyCode == 73) return false;
+ };
+
+// FORMATO APA
+function formatearAPA(item){
+ let autor = item.author?.map(a=>a.family).join(", ")||"Autor";
+ let año = item.issued?.["date-parts"]?.[0]?.[0]||"s.f.";
+ let titulo = item.title?.[0]||"Sin título";
+ let revista = item["container-title"]?.[0]||"";
+ return `${autor} (${año}). ${titulo}. ${revista}.`;
+}
+
+// LINK
+async function generarDesdeLink(){
+ let url=document.getElementById("url").value;
+ let res=await fetch(`https://api.crossref.org/works?query.bibliographic=${url}`);
+ let data=await res.json();
+ let item=data.message.items[0];
+ if(item) mostrarResultado(formatearAPA(item));
+}
+
+// TEXTO
+function generarDesdeTexto(){
+ let t=document.getElementById("texto").value;
+ let autor=t.match(/[A-Z][a-z]+(?:\s[A-Z][a-z]+)*/)?.[0]||"Autor";
+ let año=t.match(/\d{4}/)?.[0]||"s.f.";
+ mostrarResultado(`${autor} (${año}). Texto.`);
+}
+
+// PDF
+async function leerPDF(){
+ let file=document.getElementById("pdf").files[0];
+ let reader=new FileReader();
+ reader.onload=async function(){
+ let pdf=await pdfjsLib.getDocument(new Uint8Array(this.result)).promise;
+ let full="";
+ for(let i=1;i<=pdf.numPages;i++){
+ let page=await pdf.getPage(i);
+ let txt=await page.getTextContent();
+ full+=txt.items.map(i=>i.str).join(" ")+" ";
+ }
+ document.getElementById("texto").value=full;
+ };
+ reader.readAsArrayBuffer(file);
+}
+
+// RESULTADO
+function mostrarResultado(cita){
+ document.getElementById("resultado").innerText=cita;
+ guardar(cita);
+}
+
+function copiar(){
+ let t=document.getElementById("resultado").innerText;
+ navigator.clipboard.writeText(t);
+}
+
+// HISTORIAL
+function guardar(c){
+ let h=JSON.parse(localStorage.getItem("citas")||"[]");
+ h.unshift(c);
+ h=h.slice(0,20);
+ localStorage.setItem("citas",JSON.stringify(h));
+ mostrarHistorial();
+}
+
+function mostrarHistorial(){
+ let h=JSON.parse(localStorage.getItem("citas")||"[]");
+ let ul=document.getElementById("historial");
+ ul.innerHTML="";
+ h.forEach(c=>{
+ let li=document.createElement("li");
+ li.innerText=c;
+ ul.appendChild(li);
+ });
+}
+
+function limpiarHistorial(){
+ localStorage.clear();
+ mostrarHistorial();
+}
+
+mostrarHistorial();
+
+</script>
 </body>
 </html>
