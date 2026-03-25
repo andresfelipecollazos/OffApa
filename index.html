@@ -41,14 +41,108 @@ body{
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:18px;
+  gap:16px;
   margin-bottom:30px;
 }
 
+/* CUADERNO NEON */
 .logo-img{
-  width:70px;
-  filter:drop-shadow(0 0 10px #00ffff);
-  animation:float 3s ease-in-out infinite;
+  width:60px;
+  filter:drop-shadow(0 0 8px #00ffff) drop-shadow(0 0 20px #00ffff);
+}
+
+/* TEXTO LOGO */
+.logo-text{
+  font-family:'Playfair Display', serif;
+  font-size:56px;
+}
+
+.logo-text .off{
+  color:#00eaff;
+  text-shadow:
+    0 0 4px #00eaff,
+    0 0 10px #00eaff,
+    0 0 20px #00eaff,
+    0 0 40px #00eaff,
+    2px 2px 6px rgba(0,0,0,0.6);
+  transform:perspective(300px) translateZ(0);
+  animation:flickerBlue 2.2s infinite;
+}
+
+
+.logo-text .apa{
+  color:#ffffff;
+  margin-left:6px;
+  text-shadow:
+    0 0 4px #ffffff,
+    0 0 10px #ffffff,
+    0 0 20px #ffffff,
+    0 0 35px #ffffff,
+    2px 2px 6px rgba(0,0,0,0.6);
+  transform:perspective(300px) translateZ(0);
+  animation:flickerWhite 2.5s infinite;
+}
+
+
+/* EFECTO INTERMITENTE NEON */
+@keyframes flickerBlue{
+  0%,18%,22%,25%,53%,57%,100%{
+    opacity:1;
+    text-shadow:
+      0 0 4px #00eaff,
+      0 0 10px #00eaff,
+      0 0 20px #00eaff,
+      0 0 40px #00eaff;
+  }
+  20%,24%,55%{
+    opacity:0.25;
+    text-shadow:none;
+  }
+}
+
+@keyframes flickerWhite{
+  0%,18%,22%,25%,53%,57%,100%{
+    opacity:1;
+    text-shadow:
+      0 0 4px #ffffff,
+      0 0 10px #ffffff,
+      0 0 20px #ffffff,
+      0 0 35px #ffffff;
+  }
+  20%,24%,55%{
+    opacity:0.3;
+    text-shadow:none;
+  }
+}
+  20%,24%,55%{
+    opacity:0.3;
+    text-shadow:none;
+  }
+}
+
+@keyframes flickerGreen{
+  0%,18%,22%,25%,53%,57%,100%{
+    opacity:1;
+    text-shadow:
+      0 0 5px #00ff9c,
+      0 0 15px #00ff9c,
+      0 0 30px #00ff9c;
+  }
+  20%,24%,55%{
+    opacity:0.3;
+    text-shadow:none;
+  }
+}
+  20%,24%,55%{
+    opacity:0.4;
+    text-shadow:none;
+  }
+}
+
+.logo-img{
+  width:65px;
+  opacity:1;
+  filter:drop-shadow(0 0 10px #00ffff) drop-shadow(0 0 25px #00ffff);
 }
 
 .logo-text{
@@ -58,17 +152,36 @@ body{
 
 .logo-text .off{
   color:#00ffff;
-  text-shadow:0 0 10px #00ffff,0 0 25px #00ffff;
+  text-shadow:0 0 10px #00ffff,0 0 30px #00ffff;
 }
 
 .logo-text .apa{
   color:#ccffff;
   margin-left:6px;
-  text-shadow:0 0 8px #00ffff66;
+  text-shadow:0 0 10px #00ffff55;
 }
 
-@keyframes float{
-  0%{transform:translateY(0)}
+.logo-img{
+  width:42px;
+  opacity:0.85;
+  filter:drop-shadow(0 0 6px rgba(0,255,255,0.25));
+}
+
+.logo-text{
+  font-family:'Playfair Display', serif;
+  font-size:48px;
+  letter-spacing:1px;
+}
+
+.logo-text .off{
+  color:#e6ffff;
+  text-shadow:0 0 6px rgba(0,255,255,0.25);
+}
+
+.logo-text .apa{
+  color:#ffffffcc;
+  margin-left:4px;
+}
   50%{transform:translateY(-6px)}
   100%{transform:translateY(0)}
 }
@@ -243,7 +356,6 @@ li:hover{
 <div class="container">
 
 <div class="logo-container">
-  <img src="logo.png" class="logo-img">
   <div class="logo-text">
     <span class="off">OFF</span><span class="apa">Apa</span>
   </div>
