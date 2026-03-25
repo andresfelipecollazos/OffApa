@@ -7,7 +7,7 @@
 
 <meta http-equiv="Content-Security-Policy" content="
 default-src 'self';
-script-src 'self' https://cdnjs.cloudflare.com;
+script-src 'self';
 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
 font-src https://fonts.gstatic.com;
 connect-src https://api.crossref.org;
@@ -27,13 +27,13 @@ body{
 
 .container{max-width:900px;margin:auto;padding:30px}
 
-.logo-text{
+.logo{
   text-align:center;
   font-size:48px;
   margin-bottom:30px;
 }
-.logo-text .off{color:#00ffff}
-.logo-text .apa{color:#fff}
+.logo .off{color:#00ffff}
+.logo .apa{color:#fff}
 
 .card{
   background:#111;
@@ -43,7 +43,7 @@ body{
   border:1px solid var(--soft);
 }
 
-input,textarea{
+input{
   width:100%;
   padding:12px;
   margin-top:10px;
@@ -82,14 +82,14 @@ button:hover{
 
 <div class="container">
 
-<div class="logo-text">
+<div class="logo">
 <span class="off">OFF</span><span class="apa">Apa</span>
 </div>
 
 <div class="card">
-<h2>🔗 Generar desde DOI o link</h2>
-<input id="url" placeholder="Ej: https://doi.org/...">
-<button onclick="generar()">Generar cita</button>
+<h2>🔗 Generar cita</h2>
+<input id="input" placeholder="Pega DOI, link o título">
+<button onclick="generar()">Generar</button>
 </div>
 
 <div class="card">
@@ -106,40 +106,59 @@ function formatearAPA(item){
  let año = item.issued?.["date-parts"]?.[0]?.[0] || "s.f.";
  let titulo = item.title?.[0] || "Sin título";
  let revista = item["container-title"]?.[0] || "";
+ let volumen = item.volume || "";
+ let numero = item.issue ? `(${item.issue})` : "";
+ let paginas = item.page || "";
  let doi = item.DOI ? `https://doi.org/${item.DOI}` : "";
 
- return `${autor} (${año}). ${titulo}. ${revista}. ${doi}`;
+ return `${autor} (${año}). ${titulo}. ${revista}, ${volumen}${numero}, ${paginas}. ${doi}`;
 }
 
 async function generar(){
- let input = document.getElementById("url").value.trim();
+ let input = document.getElementById("input").value.trim();
  let resultado = document.getElementById("resultado");
 
  if(!input){
-   resultado.innerText="⚠️ Ingresa un DOI o link válido";
+   resultado.innerText="⚠️ Ingresa algo";
    return;
  }
+
+ resultado.innerText="⏳ Buscando...";
 
  try{
    let doi = "";
 
+   // 🔹 detectar DOI
    if(input.includes("doi.org")){
      doi = input.split("doi.org/")[1];
-   } else {
+   } else if(input.startsWith("10.")){
      doi = input;
    }
 
-   let res = await fetch(`https://api.crossref.org/works/${doi}`);
+   // 🔹 intento 1: DOI directo
+   if(doi){
+     let res = await fetch(`https://api.crossref.org/works/${doi}`);
+     let data = await res.json();
+
+     if(data.message){
+       resultado.innerText = formatearAPA(data.message);
+       return;
+     }
+   }
+
+   // 🔹 intento 2: búsqueda por texto
+   let res = await fetch(`https://api.crossref.org/works?query=${encodeURIComponent(input)}`);
    let data = await res.json();
 
-   if(data.message){
-     resultado.innerText = formatearAPA(data.message);
+   if(data.message.items.length > 0){
+     resultado.innerText = formatearAPA(data.message.items[0]);
    } else {
-     resultado.innerText = "❌ No se encontró información";
+     resultado.innerText = "❌ No se encontró resultado";
    }
 
  }catch(e){
-   resultado.innerText = "❌ Error al consultar la API";
+   console.error(e);
+   resultado.innerText = "❌ Error al consultar";
  }
 }
 
