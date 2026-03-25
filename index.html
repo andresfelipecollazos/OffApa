@@ -11,12 +11,9 @@ script-src 'self' https://cdnjs.cloudflare.com;
 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
 font-src https://fonts.gstatic.com;
 connect-src https://api.crossref.org;
-img-src 'self' data:;
 ">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
 <style>
 :root{--neon:#00ffff;--soft:#00ffff33}
@@ -25,432 +22,133 @@ body{
   margin:0;
   font-family:Inter;
   color:#fff;
-  background:radial-gradient(circle at 20% 20%,#0a0a0a,#000);
-  overflow-x:hidden;
-  animation:bgMove 10s infinite alternate ease-in-out;
-}
-
-@keyframes bgMove{
-  from{background-position:0% 0%}
-  to{background-position:100% 100%}
+  background:#000;
 }
 
 .container{max-width:900px;margin:auto;padding:30px}
 
-.logo-container{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:16px;
+.logo-text{
+  text-align:center;
+  font-size:48px;
   margin-bottom:30px;
 }
-
-/* CUADERNO NEON */
-.logo-img{
-  width:60px;
-  filter:drop-shadow(0 0 8px #00ffff) drop-shadow(0 0 20px #00ffff);
-}
-
-/* TEXTO LOGO */
-.logo-text{
-  font-family:'Playfair Display', serif;
-  font-size:56px;
-}
-
-.logo-text .off{
-  color:#00eaff;
-  text-shadow:
-    0 0 4px #00eaff,
-    0 0 10px #00eaff,
-    0 0 20px #00eaff,
-    0 0 40px #00eaff,
-    2px 2px 6px rgba(0,0,0,0.6);
-  transform:perspective(300px) translateZ(0);
-  animation:flickerBlue 2.2s infinite;
-}
-
-
-.logo-text .apa{
-  color:#ffffff;
-  margin-left:6px;
-  text-shadow:
-    0 0 4px #ffffff,
-    0 0 10px #ffffff,
-    0 0 20px #ffffff,
-    0 0 35px #ffffff,
-    2px 2px 6px rgba(0,0,0,0.6);
-  transform:perspective(300px) translateZ(0);
-  animation:flickerWhite 2.5s infinite;
-}
-
-
-/* EFECTO INTERMITENTE NEON */
-@keyframes flickerBlue{
-  0%,18%,22%,25%,53%,57%,100%{
-    opacity:1;
-    text-shadow:
-      0 0 4px #00eaff,
-      0 0 10px #00eaff,
-      0 0 20px #00eaff,
-      0 0 40px #00eaff;
-  }
-  20%,24%,55%{
-    opacity:0.25;
-    text-shadow:none;
-  }
-}
-
-@keyframes flickerWhite{
-  0%,18%,22%,25%,53%,57%,100%{
-    opacity:1;
-    text-shadow:
-      0 0 4px #ffffff,
-      0 0 10px #ffffff,
-      0 0 20px #ffffff,
-      0 0 35px #ffffff;
-  }
-  20%,24%,55%{
-    opacity:0.3;
-    text-shadow:none;
-  }
-}
-  20%,24%,55%{
-    opacity:0.3;
-    text-shadow:none;
-  }
-}
-
-@keyframes flickerGreen{
-  0%,18%,22%,25%,53%,57%,100%{
-    opacity:1;
-    text-shadow:
-      0 0 5px #00ff9c,
-      0 0 15px #00ff9c,
-      0 0 30px #00ff9c;
-  }
-  20%,24%,55%{
-    opacity:0.3;
-    text-shadow:none;
-  }
-}
-  20%,24%,55%{
-    opacity:0.4;
-    text-shadow:none;
-  }
-}
-
-.logo-img{
-  width:65px;
-  opacity:1;
-  filter:drop-shadow(0 0 10px #00ffff) drop-shadow(0 0 25px #00ffff);
-}
-
-.logo-text{
-  font-family:'Playfair Display', serif;
-  font-size:56px;
-}
-
-.logo-text .off{
-  color:#00ffff;
-  text-shadow:0 0 10px #00ffff,0 0 30px #00ffff;
-}
-
-.logo-text .apa{
-  color:#ccffff;
-  margin-left:6px;
-  text-shadow:0 0 10px #00ffff55;
-}
-
-.logo-img{
-  width:42px;
-  opacity:0.85;
-  filter:drop-shadow(0 0 6px rgba(0,255,255,0.25));
-}
-
-.logo-text{
-  font-family:'Playfair Display', serif;
-  font-size:48px;
-  letter-spacing:1px;
-}
-
-.logo-text .off{
-  color:#e6ffff;
-  text-shadow:0 0 6px rgba(0,255,255,0.25);
-}
-
-.logo-text .apa{
-  color:#ffffffcc;
-  margin-left:4px;
-}
-  50%{transform:translateY(-6px)}
-  100%{transform:translateY(0)}
-}
-
-.logo span{
-  display:inline-block;
-  border-radius:22px;
-}
-
-.logo .off{
-  color:#00ffff;
-  font-weight:700;
-  text-shadow:
-    0 0 10px #00ffff,
-    0 0 22px #00ffff,
-    0 0 40px #00ffff;
-  filter:blur(0.5px);
-  animation:dripIn 1.3s ease-out forwards;
-}
-
-.logo .apa{
-  color:#d9ffff;
-  margin-left:8px;
-  text-shadow:
-    0 0 8px #00ffff55,
-    0 0 18px #00ffff33;
-  animation:fadeSoft 1.3s ease-out forwards 0.7s;
-}
-
-@keyframes dripIn{
-  0%{opacity:0; transform:translateY(-12px) scaleY(0.7); filter:blur(3px)}
-  35%{opacity:1; transform:translateY(6px) scaleY(1.15)}
-  65%{transform:translateY(-3px) scaleY(0.95)}
-  100%{transform:translateY(0) scaleY(1)}
-}
-
-@keyframes fadeSoft{
-  from{opacity:0; transform:translateY(6px)}
-  to{opacity:1; transform:translateY(0)}
-}
-  to{opacity:1;transform:translateY(0)}
-}
-  to{opacity:1;transform:translateY(0)}
-}
-  to{opacity:1;transform:translateY(0)}
-}
-
-@keyframes glow{
-  from{ text-shadow:0 0 10px var(--neon);} 
-  to{ text-shadow:0 0 50px var(--neon);} 
-}
+.logo-text .off{color:#00ffff}
+.logo-text .apa{color:#fff}
 
 .card{
-  background:rgba(15,15,15,0.9);
-  border-radius:18px;
-  padding:25px;
-  margin-bottom:25px;
+  background:#111;
+  border-radius:16px;
+  padding:20px;
+  margin-bottom:20px;
   border:1px solid var(--soft);
-  box-shadow:0 0 15px #00ffff22;
-  opacity:0;
-  transform:translateY(20px);
-  animation:fadeIn 0.8s forwards;
 }
-
-.card:nth-child(2){animation-delay:0.2s}
-.card:nth-child(3){animation-delay:0.4s}
-.card:nth-child(4){animation-delay:0.6s}
-.card:nth-child(5){animation-delay:0.8s}
-
-@keyframes fadeIn{
-  to{opacity:1;transform:translateY(0)}
-}
-
-.card:hover{
-  box-shadow:0 0 30px #00ffff55;
-  transform:translateY(-3px);
-}
-
-.card h2{
-  margin:0 0 15px;
-  color:var(--neon);
-  border-bottom:1px solid var(--soft);
-  padding-bottom:8px;
-}
-
-.large textarea{height:140px}
-.xlarge{min-height:150px}
 
 input,textarea{
   width:100%;
-  padding:14px;
+  padding:12px;
   margin-top:10px;
-  border-radius:12px;
+  border-radius:10px;
   border:1px solid var(--soft);
   background:#000;
-  color:var(--neon);
-  box-shadow:inset 0 0 10px #00ffff22;
-  transition:0.3s;
-}
-
-input:focus,textarea:focus{
-  outline:none;
-  box-shadow:0 0 15px var(--neon);
-  transform:scale(1.01);
+  color:#0ff;
 }
 
 button{
   width:100%;
-  padding:14px;
-  margin-top:12px;
-  border-radius:12px;
+  padding:12px;
+  margin-top:10px;
+  border-radius:10px;
   border:1px solid var(--neon);
   background:transparent;
   color:var(--neon);
-  transition:0.3s;
-  position:relative;
-  overflow:hidden;
+  cursor:pointer;
 }
 
 button:hover{
   background:var(--neon);
   color:#000;
-  box-shadow:0 0 20px var(--neon);
-}
-
-/* ripple effect */
-button:after{
-  content:"";
-  position:absolute;
-  width:0;
-  height:0;
-  background:rgba(0,255,255,0.4);
-  border-radius:50%;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  transition:0.4s;
-}
-
-button:active:after{
-  width:200px;
-  height:200px;
 }
 
 #resultado{
   margin-top:10px;
-  padding:20px;
-  border-radius:12px;
+  padding:15px;
   border:1px solid var(--soft);
-  min-height:120px;
-  box-shadow:inset 0 0 10px #00ffff22;
-  animation:fadeIn 0.6s;
+  min-height:100px;
 }
-
-li{
-  list-style:none;
-  margin-top:8px;
-  padding:10px;
-  border-radius:10px;
-  border:1px solid var(--soft);
-  transition:0.3s;
-}
-
-li:hover{
-  background:#00ffff11;
-  transform:translateX(5px);
-}
-
 </style>
 </head>
 
 <body>
+
 <div class="container">
 
-<div class="logo-container">
-  <div class="logo-text">
-    <span class="off">OFF</span><span class="apa">Apa</span>
-  </div>
+<div class="logo-text">
+<span class="off">OFF</span><span class="apa">Apa</span>
 </div>
 
 <div class="card">
-<h2>🔗 Generar desde link</h2>
-<input id="url" placeholder="Pega link o DOI">
-<button onclick="generarDesdeLink()">Generar cita</button>
+<h2>🔗 Generar desde DOI o link</h2>
+<input id="url" placeholder="Ej: https://doi.org/...">
+<button onclick="generar()">Generar cita</button>
 </div>
 
-<div class="card large">
-<h2>📝 Copiar párrafo de un texto</h2>
-<textarea id="texto" placeholder="Pega aquí el texto..."></textarea>
-<button onclick="generarDesdeTexto()">Generar desde texto</button>
-</div>
-
-<div class="card xlarge">
+<div class="card">
 <h2>📄 Resultado</h2>
 <div id="resultado"></div>
-<button onclick="copiar()">Copiar cita</button>
-</div>
-
-<div class="card">
-<h2>📚 Historial</h2>
-<ul id="historial"></ul>
-<button onclick="limpiarHistorial()">Limpiar historial</button>
+<button onclick="copiar()">Copiar</button>
 </div>
 
 </div>
 
 <script>
 function formatearAPA(item){
- let autor=item.author?.map(a=>a.family).join(", ")||"Autor";
- let año=item.issued?.["date-parts"]?.[0]?.[0]||"s.f.";
- let titulo=item.title?.[0]||"Sin título";
- let revista=item["container-title"]?.[0]||"";
- return `${autor} (${año}). ${titulo}. ${revista}.`;
+ let autor = item.author?.map(a=>`${a.family}, ${a.given?.[0]||""}.`).join(", ") || "Autor";
+ let año = item.issued?.["date-parts"]?.[0]?.[0] || "s.f.";
+ let titulo = item.title?.[0] || "Sin título";
+ let revista = item["container-title"]?.[0] || "";
+ let doi = item.DOI ? `https://doi.org/${item.DOI}` : "";
+
+ return `${autor} (${año}). ${titulo}. ${revista}. ${doi}`;
 }
 
-async function generarDesdeLink(){
- let url=document.getElementById("url").value;
- let res=await fetch(`https://api.crossref.org/works?query.bibliographic=${url}`);
- let data=await res.json();
- let item=data.message.items[0];
- if(item) mostrarResultado(formatearAPA(item));
-}
+async function generar(){
+ let input = document.getElementById("url").value.trim();
+ let resultado = document.getElementById("resultado");
 
-function generarDesdeTexto(){
- let t=document.getElementById("texto").value;
- let autor=t.match(/[A-Z][a-z]+(?:\s[A-Z][a-z]+)*/)?.[0]||"Autor";
- let año=t.match(/\d{4}/)?.[0]||"s.f.";
- mostrarResultado(`${autor} (${año}). Texto.`);
-}
+ if(!input){
+   resultado.innerText="⚠️ Ingresa un DOI o link válido";
+   return;
+ }
 
-function mostrarResultado(cita){
- document.getElementById("resultado").innerText=cita;
- guardar(cita);
+ try{
+   let doi = "";
 
- // 🔽 Scroll automático al resultado
- document.getElementById("resultado").scrollIntoView({
-   behavior: 'smooth',
-   block: 'center'
- });
+   if(input.includes("doi.org")){
+     doi = input.split("doi.org/")[1];
+   } else {
+     doi = input;
+   }
+
+   let res = await fetch(`https://api.crossref.org/works/${doi}`);
+   let data = await res.json();
+
+   if(data.message){
+     resultado.innerText = formatearAPA(data.message);
+   } else {
+     resultado.innerText = "❌ No se encontró información";
+   }
+
+ }catch(e){
+   resultado.innerText = "❌ Error al consultar la API";
+ }
 }
 
 function copiar(){
- navigator.clipboard.writeText(document.getElementById("resultado").innerText);
+ let texto = document.getElementById("resultado").innerText;
+ navigator.clipboard.writeText(texto);
+ alert("Copiado");
 }
-
-function guardar(c){
- let h=JSON.parse(localStorage.getItem("citas")||"[]");
- h.unshift(c);
- h=h.slice(0,20);
- localStorage.setItem("citas",JSON.stringify(h));
- mostrarHistorial();
-}
-
-function mostrarHistorial(){
- let h=JSON.parse(localStorage.getItem("citas")||"[]");
- let ul=document.getElementById("historial");
- ul.innerHTML="";
- h.forEach(c=>{
- let li=document.createElement("li");
- li.innerText=c;
- ul.appendChild(li);
- });
-}
-
-function limpiarHistorial(){
- localStorage.clear();
- mostrarHistorial();
-}
-
-mostrarHistorial();
 </script>
+
 </body>
 </html>
