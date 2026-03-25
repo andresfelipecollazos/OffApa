@@ -414,6 +414,12 @@ function generarDesdeTexto(){
 function mostrarResultado(cita){
  document.getElementById("resultado").innerText=cita;
  guardar(cita);
+
+ // 🔽 Scroll automático al resultado
+ document.getElementById("resultado").scrollIntoView({
+   behavior: 'smooth',
+   block: 'center'
+ });
 }
 
 function copiar(){
