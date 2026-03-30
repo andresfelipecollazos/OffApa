@@ -3,14 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OFFApa AI PRO</title>
 
-<!-- =========================
-     © 2026 OFFApa AI PRO
-     Autor: Tu Proyecto
-     Licencia: Uso educativo y personal
-     Prohibida su reventa o redistribución sin autorización
-========================= -->
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7253559274757056"
+     crossorigin="anonymous"></script>
+
+<title>OFFApa AI PRO</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
@@ -85,6 +83,17 @@ footer{
 
 <h1>OFFApa AI PRO</h1>
 
+<!-- ANUNCIO SUPERIOR -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-7253559274757056"
+     data-ad-slot="1234567890"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+ (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
 <div class="card">
 <input id="url" placeholder="DOI, título o enlace">
 <button onclick="generar()">Generar cita directa</button>
@@ -107,28 +116,27 @@ footer{
 <button onclick="limpiar()">Limpiar</button>
 </div>
 
+<!-- ANUNCIO INFERIOR -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-7253559274757056"
+     data-ad-slot="1234567890"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+ (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
 <footer>
 © 2026 OFFApa AI PRO — Sistema inteligente de generación de citas
 </footer>
 
 <script>
-
-/* ========================
-   SESIÓN TEMPORAL
-======================== */
 let referencias = JSON.parse(sessionStorage.getItem("refs")||"[]");
 
 function guardar(){
  sessionStorage.setItem("refs", JSON.stringify(referencias));
 }
-
-window.addEventListener("beforeunload",()=>{
- sessionStorage.removeItem("refs");
-});
-
-/* ========================
-   UTILIDADES
-======================== */
 
 function limpiarCampos(){
  url.value="";
@@ -153,16 +161,11 @@ function similitud(a,b){
 }
 
 function detectarDOI(t){
- let doi = t.match(/10.\d{4,9}\/[-._;()/:A-Z0-9]+/i);
+ let doi = t.match(/10.\d{4,9}\/[\-._;()/:A-Z0-9]+/i);
  return doi ? doi[0] : null;
 }
 
-/* ========================
-   FORMATO APA
-======================== */
-
 function formatearAPA(item){
-
  let autores = item.author?.map(a=>{
    let apellido = a.family || "";
    let inicial = a.given ? a.given[0]+"." : "";
@@ -179,13 +182,10 @@ function formatearAPA(item){
  let año = item.issued?.["date-parts"]?.[0]?.[0] || "s.f.";
  let titulo = item.title?.[0] || "Sin título";
  let fuente = item["container-title"]?.[0] || "";
+ let doi = item.DOI ? `https://doi.org/${item.DOI}` : "";
 
- return `${autores} (${año}). ${titulo}. ${fuente}.`;
+ return `${autores} (${año}). <i>${titulo}</i>. ${fuente}. ${doi}`;
 }
-
-/* ========================
-   UI
-======================== */
 
 function mostrar(){
  resultado.innerHTML = referencias.map(r=>`<div class="ref">${r}</div>`).join("");
@@ -203,99 +203,7 @@ function agregar(c){
  limpiarCampos();
 }
 
-/* ========================
-   BUSQUEDA MULTI MOTOR
-======================== */
-
-async function buscarDocumentos(query){
-
- let candidatos = [];
-
- try{
-   let r = await fetch(`https://api.openalex.org/works?search=${encodeURIComponent(query)}&per-page=5`);
-   let d = await r.json();
-
-   d.results.forEach(w=>{
-     candidatos.push({
-       titulo:w.title,
-       autores:(w.authorships||[]).map(a=>a.author.display_name).join(" "),
-       data:{
-         title:[w.title],
-         author:(w.authorships||[]).map(a=>{
-           let n=a.author.display_name.split(" ");
-           return {given:n[0],family:n.slice(1).join(" ")};
-         }),
-         issued:{"date-parts":[[w.publication_year]]},
-         "container-title":[w.host_venue?.display_name||""]
-       }
-     });
-   });
- }catch(e){}
-
- try{
-   let r = await fetch(`https://api.semanticscholar.org/graph/v1/paper/search?query=${encodeURIComponent(query)}&limit=5&fields=title,authors,year,venue`);
-   let d = await r.json();
-
-   d.data.forEach(p=>{
-     candidatos.push({
-       titulo:p.title,
-       autores:p.authors.map(a=>a.name).join(" "),
-       data:{
-         title:[p.title],
-         author:p.authors.map(a=>{
-           let n=a.name.split(" ");
-           return {given:n[0],family:n.slice(1).join(" ")};
-         }),
-         issued:{"date-parts":[[p.year]]},
-         "container-title":[p.venue]
-       }
-     });
-   });
- }catch(e){}
-
- return candidatos;
-}
-
-/* ========================
-   TEXTO → DOCUMENTO
-======================== */
-
-async function generarDesdeTexto(){
-
- let textoInput = document.getElementById("texto").value.trim();
- if(!textoInput) return alert("Pega texto");
-
- let doi = detectarDOI(textoInput);
-
- if(doi){
-   url.value = doi;
-   generar();
-   return;
- }
-
- let fragmento = textoInput.split(" ").slice(0,30).join(" ");
- let candidatos = await buscarDocumentos(fragmento);
-
- if(!candidatos.length){
-   alert("No se encontró el documento");
-   return;
- }
-
- candidatos.forEach(c=>{
-   c.score = similitud(textoInput, c.titulo + " " + c.autores);
- });
-
- candidatos.sort((a,b)=>b.score - a.score);
-
- agregar(formatearAPA(candidatos[0].data));
-}
-
-/* ========================
-   GENERAR DIRECTO
-======================== */
-
 async function generar(){
-
  let q = url.value;
  let doi = detectarDOI(q);
 
@@ -313,49 +221,6 @@ async function generar(){
  }
 }
 
-/* ========================
-   PDF AUTOMÁTICO
-======================== */
-
-document.getElementById("pdfFile").addEventListener("change", async function(){
-
- let file = this.files[0];
- if(!file) return;
-
- let reader = new FileReader();
-
- reader.onload = async function(){
-
-   let pdf = await pdfjsLib.getDocument(new Uint8Array(this.result)).promise;
-
-   let texto = "";
-
-   for(let i=1;i<=Math.min(3,pdf.numPages);i++){
-     let page = await pdf.getPage(i);
-     let content = await page.getTextContent();
-     content.items.forEach(it=> texto += it.str + " ");
-   }
-
-   let doi = detectarDOI(texto);
-
-   if(doi){
-     url.value = doi;
-     generar();
-   }else{
-     document.getElementById("texto").value = texto;
-     generarDesdeTexto();
-   }
-
- };
-
- reader.readAsArrayBuffer(file);
-
-});
-
-/* ========================
-   EXTRA
-======================== */
-
 function copiar(){
  navigator.clipboard.writeText(referencias.join("\n\n"));
 }
@@ -367,7 +232,6 @@ function limpiar(){
    mostrar();
  }
 }
-
 </script>
 
 </body>
